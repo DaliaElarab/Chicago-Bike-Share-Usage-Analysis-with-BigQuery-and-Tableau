@@ -1,4 +1,18 @@
--- "Merge Tables into one called "2023":
+/*
+Author: Dalia El Araby
+Project: Google Data Analytics Capstone Project
+Topic: Chicago (Divvy) Bike-Share Usage Analysis
+Tool: Google BigQuery
+Date: 2023
+Purpose: 
+    - Merge all 2023 monthly trip data into one table
+    - Clean and validate data
+    - Analyze usage patterns between casual and annual riders
+*/
+
+-- Prepare the Data --
+    
+-- "Merge all months tables into one called "2023":
 CREATE OR REPLACE TABLE `dalia.2023_divvy_tripdata.2023` AS
 SELECT * FROM `dalia.2023_divvy_tripdata.202301`
 UNION ALL
