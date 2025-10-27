@@ -1,18 +1,28 @@
 /*
-Author: Dalia El Araby
+------------------------------------------------------------
+Author: Dalia Elaraby
 Project: Google Data Analytics Capstone Project
 Topic: Chicago (Divvy) Bike-Share Usage Analysis
 Tool: Google BigQuery
+Data Source: https://divvy-tripdata.s3.amazonaws.com/index.html
 Date: 2023
 Purpose: 
     - Merge all 2023 monthly trip data into one table
     - Clean and validate data
     - Analyze usage patterns between casual and annual riders
+------------------------------------------------------------
 */
 
--- Prepare the Data --
-    
--- "Merge all months tables into one called "2023":
+
+-- ============================================================
+-- 1: DATA PREPARATION 
+-- ============================================================
+
+-- 1.1: Uploaded the original CSV files to local storage and split large datasets into smaller parts for successful upload to BigQuery. 
+-- (Some monthly files exceeded BigQuery’s direct upload limit, so they were divided into smaller chunks before import.)
+
+-- 1.2: Combine all monthly tables into a single 2023 dataset
+
 CREATE OR REPLACE TABLE `dalia.2023_divvy_tripdata.2023` AS
 SELECT * FROM `dalia.2023_divvy_tripdata.202301`
 UNION ALL
@@ -51,16 +61,23 @@ UNION ALL
 SELECT * FROM `dalia.2023_divvy_tripdata.202312`;
 
 
--- Check for Duplicates:
+-- ============================================================
+-- 2: SCRUB AND PROCESS (DATA CLEANING AND VALIDATION)
+-- ============================================================
+
+-- 2.1: Explore
+
+-- 2.1.1: Check for duplicates
+
 SELECT
     ride_id,
     COUNT(*) AS num_duplicates
-FROM `dalia-first-da-project.2023_divvy_tripdata.2023`
+FROM `dalia.2023_divvy_tripdata.2023`
 GROUP BY ride_id, started_at, ended_at
-HAVING num_duplicates > 1;
+HAVING num_duplicates > 1;                                      -- No duplicates found.
 
+-- 2.1.2: Check for missing values
 
--- Check for missing values --
 SELECT
     COUNT(*) AS total_rows,
     COUNTIF(ride_id IS NULL) AS missing_ride_id,
@@ -79,17 +96,24 @@ SELECT
     COUNTIF(end_lng IS NULL) AS missing_end_lng,
     COUNTIF(member_casual IS NULL) AS missing_member_casual
 FROM
-    `dalia-first-da-project.2023_divvy_tripdata.2023`;
+    `dalia.2023_divvy_tripdata.2023`;                           -- Many missing values found.                         
+
+-- 2.1.3: Check for incorrect data: the column name "ride_legnth" was misspelled.
 
 
--- Check for Wrong or Incorrect data --
-ALTER TABLE `dalia-first-da-project.2023_divvy_tripdata.2023`
+-- 2.2: Clean
+
+-- 2.2.1: Correct data inconsistencies
+-- The column name "ride_legnth" was misspelled; it was renamed to "ride_length" for consistency.
+
+ALTER TABLE `dalia.2023_divvy_tripdata.2023`
 RENAME COLUMN ride_legnth TO ride_length;
 
+-- 2.2.2: Handle missing values
+-- Excluded station-related data (not critical for analysis).
+-- Filtered out records with missing values in end_lat and end_lng (critical fields).
 
---"Exclude station data (not critical)"--
---"Filter out records with missing values in end_lat and end_lng (critical)"--
-CREATE OR REPLACE TABLE `dalia-first-da-project.2023_divvy_tripdata.cleaned_2023` AS
+CREATE OR REPLACE TABLE `dalia.2023_divvy_tripdata.cleaned_2023` AS
 SELECT 
   ride_id,
   rideable_type,
@@ -103,7 +127,7 @@ SELECT
   end_lng,
   member_casual
 FROM 
-  `dalia-first-da-project.2023_divvy_tripdata.2023`
+  `dalia.2023_divvy_tripdata.2023`
 WHERE 
   ride_id IS NOT NULL
   AND rideable_type IS NOT NULL
@@ -118,13 +142,13 @@ WHERE
   AND member_casual IS NOT NULL;
 
 
-# Verify the Cleaned Data
+-- 2.3: Verify the cleaned data
+
 SELECT *
-FROM `dalia-first-da-project.2023_divvy_tripdata.cleaned_2023`
+FROM `dalia.2023_divvy_tripdata.cleaned_2023`
 LIMIT 10;
 
-
--- "Check for missing values":
+-- Check for missing values
 SELECT
     COUNT(*) AS total_rows,
     COUNTIF(ride_id IS NULL) AS missing_ride_id,
@@ -139,16 +163,67 @@ SELECT
     COUNTIF(end_lng IS NULL) AS missing_end_lng,
     COUNTIF(member_casual IS NULL) AS missing_member_casual
 FROM
-    `dalia-first-da-project.2023_divvy_tripdata.cleaned_2023`;
+    `dalia.2023_divvy_tripdata.cleaned_2023`;                  -- No missing values found.
 
 
-#Analysis Metrics
---Number of Rides:
+-- ============================================================
+-- 3: ANALYSIS METRICS (EXPLORATION AND SUMMARY STATISTICS)
+-- ============================================================
+
+-- 3.1: Exploration (Explore user behavior patterns and temporal trends)
+
+-- 3.1.1: Number of Rides
 SELECT 
   member_casual, 
   COUNT(ride_id) AS total_rides
 FROM 
-  `dalia-first-da-project.2023_divvy_tripdata.cleaned_2023`
+  `dalia.2023_divvy_tripdata.cleaned_2023`
+GROUP BY 
+  member_casual;
+
+-- 3.1.2: Rides Over Time
+SELECT
+  member_casual,
+  EXTRACT(YEAR FROM started_at) AS year,
+  EXTRACT(MONTH FROM started_at) AS month,
+  COUNT(ride_id) AS total_rides
+FROM
+  `dalia.2023_divvy_tripdata.cleaned_2023`
+GROUP BY
+  member_casual,
+  year,
+  month
+ORDER BY
+  year,
+  month;
+
+-- 3.1.3: Rideable Type Distribution
+SELECT 
+  member_casual, 
+  rideable_type, 
+  COUNT(ride_id) AS total_rides
+FROM 
+  `dalia.2023_divvy_tripdata.cleaned_2023`
+GROUP BY 
+  member_casual, 
+  rideable_type;
+
+-- 3.1.4: Ride Start Times
+-- 3.1.5: Day of the Week Usage
+
+-- 3.2: Summary Statistics (Compute key metrics summarizing riding behavior).
+-- 3.2.1: Ride Frequency
+-- 3.2.2: Ride Duration (Average Length)
+-- 3.2.3: Trip Distance.
+
+
+-- Number of Rides
+
+SELECT 
+  member_casual, 
+  COUNT(ride_id) AS total_rides
+FROM 
+  `dalia.2023_divvy_tripdata.cleaned_2023`
 GROUP BY 
   member_casual;
 
@@ -160,7 +235,7 @@ SELECT
   EXTRACT(MONTH FROM started_at) AS month,
   COUNT(ride_id) AS total_rides
 FROM
-  `dalia-first-da-project.2023_divvy_tripdata.cleaned_2023`
+  `dalia.2023_divvy_tripdata.cleaned_2023`
 GROUP BY
   member_casual,
   year,
@@ -176,7 +251,7 @@ SELECT
   rideable_type, 
   COUNT(ride_id) AS total_rides
 FROM 
-  `dalia-first-da-project.2023_divvy_tripdata.cleaned_2023`
+  `dalia.2023_divvy_tripdata.cleaned_2023`
 GROUP BY 
   member_casual, 
   rideable_type;
@@ -187,7 +262,7 @@ SELECT
   member_casual, 
   COUNT(ride_id) / COUNT(DISTINCT EXTRACT(MONTH FROM started_at)) AS avg_rides_per_month
 FROM 
-  `dalia-first-da-project.2023_divvy_tripdata.cleaned_2023`
+  `dalia.2023_divvy_tripdata.cleaned_2023`
 GROUP BY 
   member_casual;
 
@@ -197,7 +272,7 @@ SELECT
   member_casual, 
   AVG(TIMESTAMP_DIFF(ended_at, started_at, MINUTE)) AS avg_ride_length
 FROM 
-  `dalia-first-da-project.2023_divvy_tripdata.cleaned_2023`
+  `dalia.2023_divvy_tripdata.cleaned_2023`
 GROUP BY 
   member_casual;
 
@@ -208,7 +283,7 @@ SELECT
   EXTRACT(HOUR FROM started_at) AS hour, 
   COUNT(ride_id) AS rides
 FROM 
-  `dalia-first-da-project.2023_divvy_tripdata.cleaned_2023`
+  `dalia.2023_divvy_tripdata.cleaned_2023`
 GROUP BY 
   member_casual, 
   hour
@@ -222,7 +297,7 @@ SELECT
   day_of_week, 
   COUNT(ride_id) AS rides
 FROM 
-  `dalia-first-da-project.2023_divvy_tripdata.cleaned_2023`
+  `dalia.2023_divvy_tripdata.cleaned_2023`
 GROUP BY 
   member_casual, 
   day_of_week
@@ -243,5 +318,20 @@ SELECT
             NULL  
         )
     ) AS avg_trip_distance_km
-FROM `dalia-first-da-project.2023_divvy_tripdata.cleaned_2023`
+FROM `dalia.2023_divvy_tripdata.cleaned_2023`
 GROUP BY member_casual;
+
+
+
+
+
+
+
+-- Number of Rides
+--Rides over Time:
+--Rideable Type Distribution:
+--Ride Frequency:
+--Ride Duration (Average Ride Length):
+--Ride Start Times:
+--Day of the Week Usage:
+--Trip Distance (Calculate the average distance traveled using the Haversine formula):
