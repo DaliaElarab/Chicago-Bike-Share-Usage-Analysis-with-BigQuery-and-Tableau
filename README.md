@@ -4,6 +4,8 @@ Google Data Analytics Capstone project analyzing Chicago bike-share data using S
 This project analyzes 12 months of **Chicago’s public bike-share trip data** (Divvy Bikes 2023) to identify behavioral differences between casual riders and annual members.
 The analysis combines the **OSEMN** (Obtain, Scrub, Explore, Model, Interpret) and **APPA-SA** (Ask, Prepare, Process, Analyze, Share, Act) frameworks to ensure a complete, research-style workflow.
 
+**Tools:** Microsoft Excel, SQL (BigQuery), and Tableau.
+
 ## Scenario
 I'm a junior data analyst working in the marketing analyst team at Cyclistic, a bike-share company in Chicago. The director of marketing believes the company’s future success depends on maximizing the number of annual memberships. Therefore, my team wants to understand how casual riders and annual members use Cyclistic bikes differently. From these insights, my team will design a new marketing strategy to convert casual riders into annual members. But first, Cyclistic executives must approve my recommendations, so they must be backed up with compelling data insights and professional data visualizations.
 
