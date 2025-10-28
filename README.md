@@ -37,7 +37,7 @@ Moreno has set a clear goal: Design marketing strategies aimed at converting cas
 5. Supporting visualizations and key findings.
 6. My top three recommendations based on my analysis.
 
-> ⚠️ **Note:** Please see the Kaggle notebook for the detailed analysis process —  
+> **Note:** See the Kaggle notebook for the detailed analysis process —  
 > **Google Data Analytics Capstone Project | Kaggle Notebook Available [here](https://www.kaggle.com/code/daliaelaraby123/bike-share-analysis-with-bigquery-and-tableau)**  
 
 ---
