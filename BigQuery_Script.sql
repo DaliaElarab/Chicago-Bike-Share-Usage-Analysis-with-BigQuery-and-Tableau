@@ -10,10 +10,31 @@ Purpose:
     - Merge all 2023 monthly trip data into one table
     - Clean and validate data
     - Analyze usage patterns between casual and annual riders
+Description:
+This script documents the complete analytical workflow for the Google Data Analytics
+Capstone Project (Cyclistic Bike-Share case study).  The workflow is divided into three
+main stages:
+
+1. DATA PREPARATION  
+   - Combine monthly CSV files for 2023 into a single BigQuery table using UNION ALL.  
+   - Handle upload limitations by splitting large files into smaller chunks.
+
+2. SCRUB AND PROCESS (DATA CLEANING AND VALIDATION)  
+   - Explore the merged dataset to check for duplicates, missing, and inconsistent data.  
+   - Correct a misspelled column ("ride_legnth" → "ride_length") and filter incomplete rows.  
+   - Create a cleaned dataset (`cleaned_2023`) for analysis.
+
+3. ANALYSIS METRICS (EXPLORATION AND SUMMARY STATISTICS)  
+   - Generate key indicators describing usage patterns across casual and member riders.
+   - Export aggregated results as CSVs for visualization in Tableau.
+
+Output:
+   - A cleaned dataset ready for analysis.
+   - Analytical tables summarizing ridership trends.
 ------------------------------------------------------------
 */
 
-
+    
 -- ============================================================
 -- 1: DATA PREPARATION 
 -- ============================================================
@@ -21,7 +42,7 @@ Purpose:
 -- 1.1: Uploaded the original CSV files to local storage and split large datasets into smaller parts for successful upload to BigQuery. 
 -- (Some monthly files exceeded BigQuery’s direct upload limit, so they were divided into smaller chunks before import.)
 
--- 1.2: Combine all monthly tables into a single 2023 dataset
+-- 1.2: Combine all monthly tables into a single 2023 dataset using UNION ALL.
 
 CREATE OR REPLACE TABLE `dalia.2023_divvy_tripdata.2023` AS
 SELECT * FROM `dalia.2023_divvy_tripdata.202301`
@@ -98,7 +119,7 @@ SELECT
 FROM
     `dalia.2023_divvy_tripdata.2023`;                           -- Many missing values found.                         
 
--- 2.1.3: Check for incorrect data: the column name "ride_legnth" was misspelled.
+-- 2.1.3: Identify incorrect data — the column name "ride_legnth" was misspelled.
 
 
 -- 2.2: Clean
@@ -149,6 +170,7 @@ FROM `dalia.2023_divvy_tripdata.cleaned_2023`
 LIMIT 10;
 
 -- Check for missing values
+
 SELECT
     COUNT(*) AS total_rows,
     COUNTIF(ride_id IS NULL) AS missing_ride_id,
@@ -173,6 +195,7 @@ FROM
 -- 3.1: Exploration (Explore user behavior patterns and temporal trends)
 
 -- 3.1.1: Number of Rides
+
 SELECT 
   member_casual, 
   COUNT(ride_id) AS total_rides
@@ -182,6 +205,7 @@ GROUP BY
   member_casual;
 
 -- 3.1.2: Rides Over Time
+
 SELECT
   member_casual,
   EXTRACT(YEAR FROM started_at) AS year,
@@ -198,6 +222,7 @@ ORDER BY
   month;
 
 -- 3.1.3: Rideable Type Distribution
+
 SELECT 
   member_casual, 
   rideable_type, 
@@ -209,75 +234,7 @@ GROUP BY
   rideable_type;
 
 -- 3.1.4: Ride Start Times
--- 3.1.5: Day of the Week Usage
 
--- 3.2: Summary Statistics (Compute key metrics summarizing riding behavior).
--- 3.2.1: Ride Frequency
--- 3.2.2: Ride Duration (Average Length)
--- 3.2.3: Trip Distance.
-
-
--- Number of Rides
-
-SELECT 
-  member_casual, 
-  COUNT(ride_id) AS total_rides
-FROM 
-  `dalia.2023_divvy_tripdata.cleaned_2023`
-GROUP BY 
-  member_casual;
-
-
---Rides over Time:
-SELECT
-  member_casual,
-  EXTRACT(YEAR FROM started_at) AS year,
-  EXTRACT(MONTH FROM started_at) AS month,
-  COUNT(ride_id) AS total_rides
-FROM
-  `dalia.2023_divvy_tripdata.cleaned_2023`
-GROUP BY
-  member_casual,
-  year,
-  month
-ORDER BY
-  year,
-  month;
-
-
---Rideable Type Distribution:
-SELECT 
-  member_casual, 
-  rideable_type, 
-  COUNT(ride_id) AS total_rides
-FROM 
-  `dalia.2023_divvy_tripdata.cleaned_2023`
-GROUP BY 
-  member_casual, 
-  rideable_type;
-
-
---Ride Frequency:
-SELECT 
-  member_casual, 
-  COUNT(ride_id) / COUNT(DISTINCT EXTRACT(MONTH FROM started_at)) AS avg_rides_per_month
-FROM 
-  `dalia.2023_divvy_tripdata.cleaned_2023`
-GROUP BY 
-  member_casual;
-
-
---Ride Duration (Average Ride Length):
-SELECT 
-  member_casual, 
-  AVG(TIMESTAMP_DIFF(ended_at, started_at, MINUTE)) AS avg_ride_length
-FROM 
-  `dalia.2023_divvy_tripdata.cleaned_2023`
-GROUP BY 
-  member_casual;
-
-
---Ride Start Times:
 SELECT 
   member_casual, 
   EXTRACT(HOUR FROM started_at) AS hour, 
@@ -290,8 +247,8 @@ GROUP BY
 ORDER BY 
   hour;
 
+-- 3.1.5: Day of the Week Usage
 
---Day of the Week Usage:
 SELECT 
   member_casual, 
   day_of_week, 
@@ -305,7 +262,30 @@ ORDER BY
   day_of_week;
 
 
---Trip Distance (Calculate the average distance traveled using the Haversine formula):
+-- 3.2: Summary Statistics (Compute key metrics summarizing riding behavior).
+
+-- 3.2.1: Ride Frequency
+
+SELECT 
+  member_casual, 
+  COUNT(ride_id) / COUNT(DISTINCT EXTRACT(MONTH FROM started_at)) AS avg_rides_per_month
+FROM 
+  `dalia.2023_divvy_tripdata.cleaned_2023`
+GROUP BY 
+  member_casual;
+
+-- 3.2.2: Ride Duration (Average Length)
+
+SELECT 
+  member_casual, 
+  AVG(TIMESTAMP_DIFF(ended_at, started_at, MINUTE)) AS avg_ride_length
+FROM 
+  `dalia.2023_divvy_tripdata.cleaned_2023`
+GROUP BY 
+  member_casual;
+
+-- 3.2.3: Trip Distance (Calculate the average distance traveled using the Haversine formula)
+
 SELECT
     member_casual,
     AVG(
@@ -322,16 +302,6 @@ FROM `dalia.2023_divvy_tripdata.cleaned_2023`
 GROUP BY member_casual;
 
 
-
-
-
-
-
--- Number of Rides
---Rides over Time:
---Rideable Type Distribution:
---Ride Frequency:
---Ride Duration (Average Ride Length):
---Ride Start Times:
---Day of the Week Usage:
---Trip Distance (Calculate the average distance traveled using the Haversine formula):
+-- To compare casual vs. member riders, the resulting tables were exported to Tableau for visualization and dashboard development. 
+-- You can view the interactive dashboard here:
+-- https://public.tableau.com/app/profile/dalia.elaraby/viz/BikeShareDadhboard/BikeShareAnalysis
