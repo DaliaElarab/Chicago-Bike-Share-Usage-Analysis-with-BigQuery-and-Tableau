@@ -1,4 +1,4 @@
-# Chicago-Bike-Share-Usage-Analysis-with-BigQuery-and-Tableau
+# Chicago Bike Share Usage Analysis: A Case Study using Google BigQuery and Tableau
 Google Data Analytics Capstone project analyzing Chicago bike-share data using SQL (BigQuery) and Tableau.
 
 This project analyzes 12 months of **Chicago’s public bike-share trip data** (Divvy Bikes 2023) to identify behavioral differences between casual riders and annual members.
