@@ -47,7 +47,7 @@ Moreno has set a clear goal: Design marketing strategies aimed at converting cas
 This project uses public trip data from **Divvy Bikes**, operated by Motivate International Inc.
 
 ### 📎 Data Source  
-Trip data provided by [Divvy Bikes](https://divvybikes.com/data-license-agreement), operated by Motivate International Inc.  
+Trip data provided by [Divvy Bikes](https://divvy-tripdata.s3.amazonaws.com/index.html), operated by Motivate International Inc.  
 Data used under the [Divvy Data License Agreement](https://divvybikes.com/data-license-agreement).
 
 Data © Motivate International Inc. Used under license for educational and analytical purposes.
