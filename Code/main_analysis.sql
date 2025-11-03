@@ -1,7 +1,7 @@
 /*
 ------------------------------------------------------------ 
 Author: Dalia Elaraby
-Project: Google Data Analytics Capstone Project
+Project: Google Data Analytics Capstone Project 
 Topic: Chicago (Divvy) Bike-Share Usage Analysis
 Tool: Google BigQuery
 Data Source: https://divvy-tripdata.s3.amazonaws.com/index.html
